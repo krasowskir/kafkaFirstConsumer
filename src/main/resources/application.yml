@@ -1,0 +1,20 @@
+spring:
+  profiles: dev
+  main:
+    banner-mode: console
+  application:
+    name: kafkaFirstCOnsumer
+  kafka:
+    bootstrap-servers: localhost:29092  # docker-compose
+    listener:
+      ack-mode: manual_immediate
+    consumer:
+      group-id: app-1
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      heartbeat-interval: 5000
+      max-poll-records: 1
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "*" # required for serialization
