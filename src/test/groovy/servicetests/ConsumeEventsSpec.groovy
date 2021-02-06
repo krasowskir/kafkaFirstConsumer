@@ -42,7 +42,7 @@ class ConsumeEventsSpec extends Specification {
 
     ConcurrentMessageListenerContainer<String, String> container2
 
-    MyConsumerAwareConsumer consumer1
+    MyAckConsumer consumer1
 
     MyConsumerAwareConsumer consumer2
 
@@ -71,7 +71,9 @@ class ConsumeEventsSpec extends Specification {
         def template = new KafkaTemplate<String, String>(factory, true)
 
         Headers headers = new RecordHeaders()
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, 0, null, '1234567890', "Test 123", headers)
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, '1', "Test 123")
+        ProducerRecord<String, String> record2 = new ProducerRecord<>(topic, '2', "Test 123")
+
 
         and:
         Map<String, Object> props = new HashMap<>();
@@ -100,10 +102,10 @@ class ConsumeEventsSpec extends Specification {
         Thread.sleep(5000)
         template.send(record).get()
         template.send(record).get()
-        template.send(record).get()
+        template.send(record2).get()
         template.send(record).get()
 
-        Thread.sleep(10000)
+        Thread.sleep(5000)
         System.out.println('offsets c1: ' + KafkaTestUtils.getEndOffsets(testCons1 as Consumer<String, String>,"test-Topic",0))
         System.out.println('offsets c2: ' + KafkaTestUtils.getEndOffsets(testCons2 as Consumer<String, String>,"test-Topic",1))
 
@@ -114,7 +116,7 @@ class ConsumeEventsSpec extends Specification {
 
     public ContainerProperties containerProperties() {
         ContainerProperties containerProps = new ContainerProperties("test-Topic");
-        consumer1 = new MyConsumerAwareConsumer()
+        consumer1 = new MyAckConsumer()
         containerProps.setMessageListener(consumer1)
         containerProps.setAckMode(ContainerProperties.AckMode.MANUAL)
         containerProps.setGroupId("gruppe1")
@@ -125,7 +127,7 @@ class ConsumeEventsSpec extends Specification {
         ContainerProperties containerProps = new ContainerProperties("test-Topic");
         consumer2 = new MyConsumerAwareConsumer()
         containerProps.setMessageListener(consumer2);
-        containerProps.setAckMode(ContainerProperties.AckMode.MANUAL)
+        containerProps.setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE)
         containerProps.setGroupId("gruppe2");
         return containerProps;
     }
